@@ -1,0 +1,11 @@
+input_features:
+  - name: image_path
+    type: image
+    encoder: stacked_cnn  # Convolutional layers for image processing
+output_features:
+  - name: label
+    type: category  # Multi-class (tissues)
+trainer:
+  epochs: 20  # Training iterations
+  batch_size: 32  # Samples per batch
+  learning_rate: 0.001  # Adjust for convergence
