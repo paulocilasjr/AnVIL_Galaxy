@@ -12,6 +12,7 @@ from terra_notebook_utils import drs  # Ensure terra-notebook-utils is installed
 import zipfile
 import shutil
 import sys  # For flushing prints
+import time  # For timing prints
 
 # Define DRS URIs from the file_inventory table
 TPM_DRS = 'drs://drs.anv0:v2_13903d0b-9dc6-3e09-a6f9-0275f7e5d78f'  # GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_tpm.gct.gz
@@ -31,27 +32,34 @@ BUCKET = 'gs://your-bucket-name/'
 
 def resolve_drs(drs_uri):
     """Resolve DRS URI to a signed URL."""
+    start_time = time.time()
     print(f"Resolving DRS URI: {drs_uri}...")
     url = drs.access(drs_uri)
-    print(f"Resolved DRS URI successfully.")
+    elapsed = time.time() - start_time
+    print(f"Resolved DRS URI in {elapsed:.2f} seconds.")
     return url
 
 def load_gct(signed_url):
     """Load .gct.gz file into DataFrame and transpose."""
+    start_time = time.time()
     print("Loading GCT file...")
     df = pd.read_csv(signed_url, sep='\t', skiprows=2, index_col=0, compression='gzip')
     df = df.iloc[:, 1:].transpose()  # Samples as rows, genes as columns
-    print("GCT file loaded and transposed.")
+    elapsed = time.time() - start_time
+    print(f"GCT file loaded and transposed in {elapsed:.2f} seconds.")
     return df
 
 def load_annotations(signed_url):
     """Load annotations TXT file."""
+    start_time = time.time()
     print("Loading annotations file...")
     df = pd.read_csv(signed_url, sep='\t')
-    print("Annotations file loaded.")
+    elapsed = time.time() - start_time
+    print(f"Annotations file loaded in {elapsed:.2f} seconds.")
     return df
 
 def preprocess_data():
+    start_time = time.time()
     print("Starting preprocessing (Step 1/4)...")
     # Resolve URLs
     tpm_signed_url = resolve_drs(TPM_DRS)
@@ -66,16 +74,25 @@ def preprocess_data():
     print(f"Loaded annotations with columns: {annot.columns.tolist()}")
 
     # Subset to selected tissues
+    subset_start = time.time()
     print(f"Subsetting to {len(SELECTED_TISSUES)} tissues with {SAMPLES_PER_TISSUE} samples each...")
     meta = annot[annot['SMTSD'].isin(SELECTED_TISSUES)].groupby('SMTSD').sample(SAMPLES_PER_TISSUE, random_state=42)
+    # Filter meta to only include samples present in the matrix index to avoid KeyError
+    meta = meta[meta['SAMPID'].isin(df_tpm.index)]
+    print(f"Filtered to {len(meta)} common samples after index check.")
     df_filtered = df_tpm.loc[meta['SAMPID']]
-    print(f"Subset complete: {df_filtered.shape[0]} samples selected.")
+    subset_elapsed = time.time() - subset_start
+    print(f"Subset complete in {subset_elapsed:.2f} seconds.")
 
     # Save outputs
+    save_start = time.time()
     df_filtered.to_csv('expression_matrix.csv', index=True)
     meta[['SAMPID', 'SMTSD']].to_csv('metadata_base.csv', index=False, header=['sample_id', 'label'])
-    print("Saved expression_matrix.csv and metadata_base.csv")
-    print("Preprocessing complete (Step 1/4 done).")
+    save_elapsed = time.time() - save_start
+    print(f"Saved expression_matrix.csv and metadata_base.csv in {save_elapsed:.2f} seconds.")
+    
+    total_elapsed = time.time() - start_time
+    print(f"Preprocessing complete (Step 1/4 done) in {total_elapsed:.2f} seconds.")
 
 def load_matrix(file_path, sep=","):
     return pd.read_csv(file_path, sep=sep, index_col=0)
