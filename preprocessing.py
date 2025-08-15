@@ -77,7 +77,7 @@ def preprocess_data():
     subset_start = time.time()
     print(f"Subsetting to {len(SELECTED_TISSUES)} tissues with {SAMPLES_PER_TISSUE} samples each...")
     meta = annot[annot['SMTSD'].isin(SELECTED_TISSUES)].groupby('SMTSD').sample(SAMPLES_PER_TISSUE, random_state=42)
-    # Filter meta to only include samples present in the matrix index to avoid KeyError
+    # Filter meta to only include samples present in matrix index to avoid KeyError
     meta = meta[meta['SAMPID'].isin(df_tpm.index)]
     print(f"Filtered to {len(meta)} common samples after index check.")
     df_filtered = df_tpm.loc[meta['SAMPID']]
@@ -149,7 +149,7 @@ def generate_images(matrix_path, jpg_dir, normalization):
 def create_ludwig_csv(metadata_path, jpg_dir, bucket):
     print("Creating Ludwig input CSV...")
     meta = pd.read_csv(metadata_path)
-    meta['image_path'] = [bucket + jpg_dir + '/' + row['sample_id'] + '.jpg' for _, row in meta.iterrows()]
+    meta['image_path'] = [row['sample_id'] + '.jpg' for _, row in meta.iterrows()]  # Only image name, no full path
     meta[['image_path', 'label']].to_csv('ludwig_input.csv', index=False)
     print("Saved ludwig_input.csv")
 
