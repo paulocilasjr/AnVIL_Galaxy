@@ -19,8 +19,8 @@ TPM_DRS = 'drs://drs.anv0:v2_13903d0b-9dc6-3e09-a6f9-0275f7e5d78f'  # GTEx_Analy
 READS_DRS = 'drs://drs.anv0:v2_9694ab46-2c6f-3a0c-ab00-732699214c03'  # GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct.gz (optional)
 ANNOT_DRS = 'drs://drs.anv0:v2_cc9c26d1-2ba8-3a0a-85ac-d06c72a6d77a'  # GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt
 
-# Selected tissues for subsetting (adjust as needed)
-SELECTED_TISSUES = ['Brain - Cortex', 'Heart - Left Ventricle', 'Liver', 'Lung', 'Muscle - Skeletal']
+# Selected tissues for subsetting (adjust as needed) - Added 'Adipose - Subcutaneous' and 'Skin - Sun Exposed (Lower leg)'
+SELECTED_TISSUES = ['Brain - Cortex', 'Heart - Left Ventricle', 'Liver', 'Lung', 'Muscle - Skeletal', 'Adipose - Subcutaneous', 'Skin - Sun Exposed (Lower leg)']
 SAMPLES_PER_TISSUE = 200  # Number of samples per tissue
 
 # Image parameters
@@ -80,6 +80,10 @@ def preprocess_data():
     # Filter meta to only include samples present in matrix index to avoid KeyError
     meta = meta[meta['SAMPID'].isin(df_tpm.index)]
     print(f"Filtered to {len(meta)} common samples after index check.")
+    # Ensure no duplicate samples (though unlikely in GTEx, but to prevent leakage)
+    meta = meta.drop_duplicates(subset=['SAMPID'])
+    if len(meta) < (len(SELECTED_TISSUES) * SAMPLES_PER_TISSUE):
+        print(f"Warning: Removed duplicates; final unique samples: {len(meta)}")
     df_filtered = df_tpm.loc[meta['SAMPID']]
     subset_elapsed = time.time() - subset_start
     print(f"Subset complete in {subset_elapsed:.2f} seconds.")
