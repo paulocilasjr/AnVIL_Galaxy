@@ -61,7 +61,7 @@ Copy the full bucket prefix (e.g., gs://fc-secure-abc123/)—use it in code for 
 
 ## Step 6: Launch Jupyter Notebook and Preprocess Data
 
-In the workspace dashboard, click the cloud icon (top-right, looks like a cloud with gear) > Select "Jupyter" environment > Choose a standard VM (4 CPUs, 15 GB RAM) > Click "Create" or "Start" (wait ~5–10 minutes for setup).
+In the workspace dashboard, click the cloud icon (top-right, looks like a cloud with gear) > Select "Jupyter" environment > Choose a standard VM (8 CPUs, 30 GB RAM, 5000 gb disk) > Click "Create" or "Start" (wait ~5–10 minutes for setup).
 Once running, click "Open" to enter Jupyter > Create a new notebook (File > New > Notebook > Python 3 kernel).
 Copy-paste and run the following preprocessing script in cells (or save as preprocessing_gtex.py and run %run preprocessing_gtex.py)
 
